@@ -23,9 +23,8 @@ end
 local stateutil = {}
 
 function stateutil.is_denied(pipe)
-	if not pipe.has_fluid_segment(1) then return true end
 	for _,prefix in pairs(storage.denylist_prefixes) do
-		if util.string_starts_with(pipe.name, prefix) then
+		if util.string_starts_with(stateutil.get_pipe_name(pipe), prefix) then
 			return true
 		end
 	end
@@ -67,7 +66,7 @@ function stateutil.is_tank(entity)
 end
 
 function stateutil.are_fluids_compatible(pipe, other, other_index)
-	if not pipe.has_fluid_segment(1) then return false end
+	if not pipe.has_fluid_segment(1) then return true end
 	local fluid_a = pipe.get_fluid_segment_fluid(1)
 	if fluid_a and fluid_a.name then
 		fluid_a = fluid_a.name
