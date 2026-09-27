@@ -2,6 +2,9 @@
 Version: 3.1.4
 Date: ????
   Changes:
+    - Rename the Flow control tool to the Flow key tool
+    - The standard flow key left click drag (closes open & non-flowing pipes) no longer takes area into account
+    - The standard flow key right click drag (opens closed & non-blocked pipes) only takes area into account when there's a neighboring pipe outside of the area
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.3
 Date: 2026-09-27

@@ -116,7 +116,7 @@ function flowutil.try_lock_pipe(player, pipe, area, is_restricted)
 		end
 	else
 		for dir,_ in pairs(pipeinfo.directions) do
-			if states[dir] == "open" and not (area and stateutil.is_restricted(pipe, dir, area)) then
+			if states[dir] == "open" then
 				states.directions[dir] = nil
 				do_replace = true
 			end
@@ -155,11 +155,19 @@ function flowutil.try_unlock_pipe(player, pipe, area, is_restricted)
 			end
 		end
 	else
-		for dir,_ in pairs(pipeinfo.directions) do
-			if states[dir] == "close" and not (area and stateutil.is_restricted(pipe, dir, area)) then
+		for dir,offset in pairs(pipeinfo.directions) do
+			if states[dir] == "close" then
+				if area and stateutil.is_restricted(pipe, dir, area) then
+					local searchpos = math2d.position.add(pipe.position, offset)
+					local others = pipe.surface.find_entities_filtered{position=searchpos, type="pipe"}
+					if #others > 0 then
+						goto continue
+					end
+				end
 				states.directions[dir] = true
 				do_replace = true
 			end
+			::continue::
 		end
 	end
 
