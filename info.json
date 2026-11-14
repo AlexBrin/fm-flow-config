@@ -1,11 +1,11 @@
 {
-  "name": "flow-config",
-  "title": "Flow Configuration",
+  "name": "flow-config-fix",
+  "title": "Flow Configuration Optimization Fix",
   "description": "More control over pipes. Similar results as Flow Control, but with the GUI and hotkeys of Inserter Configuration instead of unique items per bend. Run pipes with different fluids next to each other!",
-  "author": "SafTheLamb",
+  "author": "SafTheLamb, AlexBrin",
   "factorio_version": "2.1",
   "version": "3.1.6",
-  "homepage": "https://github.com/safthelamb/fm-flow-config",
+  "homepage": "https://github.com/AlexBrin/fm-flow-config",
   "package": {
     "ignore": ["thumbnail.af", "thumbnail.pdn", "**/*.af", "**/*.ase", "**/*.af~lock~", "**/*.pdn"]
   },

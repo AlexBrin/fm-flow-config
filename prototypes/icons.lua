@@ -5,7 +5,7 @@ for dir,_ in pairs(pipeinfo.directions) do
 		{
 			type = "sprite",
 			name = "fc-flow-"..dir,
-			filename = "__flow-config__/graphics/icons/flow-"..dir..".png",
+			filename = "__flow-config-fix__/graphics/icons/flow-"..dir..".png",
 			flags = {"gui-icon"},
 			width = 40,
 			height = 40,
@@ -15,7 +15,7 @@ for dir,_ in pairs(pipeinfo.directions) do
 		{
 			type = "sprite",
 			name = "fc-open-"..dir,
-			filename = "__flow-config__/graphics/icons/open-"..dir..".png",
+			filename = "__flow-config-fix__/graphics/icons/open-"..dir..".png",
 			flags = {"gui-icon"},
 			width = 40,
 			height = 40,
@@ -25,7 +25,7 @@ for dir,_ in pairs(pipeinfo.directions) do
 		{
 			type = "sprite",
 			name = "fc-close-"..dir,
-			filename = "__flow-config__/graphics/icons/close-"..dir..".png",
+			filename = "__flow-config-fix__/graphics/icons/close-"..dir..".png",
 			flags = {"gui-icon"},
 			width = 40,
 			height = 40,
@@ -35,7 +35,7 @@ for dir,_ in pairs(pipeinfo.directions) do
 		{
 			type = "sprite",
 			name = "fc-block-"..dir,
-			filename = "__flow-config__/graphics/icons/block-"..dir..".png",
+			filename = "__flow-config-fix__/graphics/icons/block-"..dir..".png",
 			flags = {"gui-icon"},
 			width = 40,
 			height = 40,
@@ -49,7 +49,7 @@ data:extend({
 	{
 		type = "sprite",
 		name = "fc-toggle-open",
-		filename = "__flow-config__/graphics/icons/toggle-open.png",
+		filename = "__flow-config-fix__/graphics/icons/toggle-open.png",
 		flags = {"gui-icon"},
 		width = 40,
 		height = 40,
@@ -59,7 +59,7 @@ data:extend({
 	{
 		type = "sprite",
 		name = "fc-toggle-close",
-		filename = "__flow-config__/graphics/icons/toggle-close.png",
+		filename = "__flow-config-fix__/graphics/icons/toggle-close.png",
 		flags = {"gui-icon"},
 		width = 40,
 		height = 40,
@@ -69,7 +69,7 @@ data:extend({
 	{
 		type = "sprite",
 		name = "fc-toggle-locked",
-		filename = "__flow-config__/graphics/icons/toggle-locked.png",
+		filename = "__flow-config-fix__/graphics/icons/toggle-locked.png",
 		flags = {"gui-icon"},
 		width = 40,
 		height = 40,

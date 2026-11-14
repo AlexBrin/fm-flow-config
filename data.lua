@@ -5,7 +5,7 @@ data:extend({
 	{
 		type = "selection-tool",
 		name = "fc-flow-key-tool",
-		icon = "__flow-config__/graphics/icons/tool-key.png",
+		icon = "__flow-config-fix__/graphics/icons/tool-key.png",
 		icon_size = 64, icon_mipmaps = 4,
 		flags = {"only-in-cursor", "not-stackable", "spawnable"},
 		hidden = true,
@@ -65,14 +65,14 @@ data:extend({
 		style = "blue",
 		icons = {
 			{
-				icon = "__flow-config__/graphics/icons/tool-key-x32.png",
+				icon = "__flow-config-fix__/graphics/icons/tool-key-x32.png",
 				icon_size = 32,
 				scale = 0.5
 			},
 		},
 		small_icons = {
 			{
-				icon = "__flow-config__/graphics/icons/tool-key-x24.png",
+				icon = "__flow-config-fix__/graphics/icons/tool-key-x24.png",
 				icon_size = 24,
 				scale = 0.5
 			},
