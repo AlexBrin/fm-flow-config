@@ -497,44 +497,89 @@ script.on_event(defines.events.on_player_setup_blueprint, on_player_setup_bluepr
 
 ---------------------------------------------------------------------------------------------------
 
---- @param event EventData.on_built_entity|EventData.on_robot_built_entity|EventData.on_space_platform_built_entity|EventData.script_raised_built|EventData.script_raised_revive|EventData.on_cancelled_deconstruction
-local function on_built_entity(event)
-	-- Based on code by protocol_1903 from Parallel Piping
-	-- licensed under the Sunset Protocol License, a copy can be found in credits/SUNSET_LICENSE
-	local player = event.player_index and game.get_player(event.player_index)
-	local this = event.entity
-	local stack = player and player.undo_redo_stack
-	local blueprint = stack and stack.get_undo_item_count() > 0 and #stack.get_undo_item(1) ~= 1
+--- Cache only positive multi-action checks. A blueprint can build thousands of
+--- ghosts in a single tick, so repeatedly materializing its complete undo item
+--- for every configured pipe is unnecessarily expensive. Single-action results
+--- are NOT cached: the undo item may still be growing during the same tick.
+local blueprint_undo_cache = {}
 
-	if this.type == "entity-ghost" and this.ghost_type == "storage-tank" or this.type == "storage-tank" then
-		---@diagnostic disable-next-line: undefined-field
-		local tankdata = stateutil.get_tank_data(this.name)
-		if tankdata then
-			local tankdata = pipeinfo.tanks[tankdata.tankname]
-			if not tankdata then return end
-			local juncname = tankdata.juncname[this.direction]
-			local new_name = flowutil.construct_pipename(tankdata.basename, juncname)
-			this.surface.create_entity{
-				name = this.name == "entity-ghost" and "entity-ghost" or new_name,
-				ghost_name = this.name == "entity-ghost" and new_name or nil,
-				position = this.position,
-				quality = this.quality,
-				force = this.force,
-				player = event.player_index,
-				undo_index = player and 1 or nil,
-				create_build_effect_smoke = false,
-				raise_built = true
-			}
-			this.destroy()
-			if stack and not blueprint then
-				stack.remove_undo_action(1, 1)
-			end
-		end
-	end
+local function has_multi_action_undo(player)
+    if not player then return false end
+    local stack = player.undo_redo_stack
+    local count = stack.get_undo_item_count()
+    if count == 0 then return false end
+
+    local cached = blueprint_undo_cache[player.index]
+    if cached and cached.tick == game.tick and cached.count == count then
+        return true
+    end
+
+    local actions = stack.get_undo_item(1)
+    local multiple = actions ~= nil and #actions ~= 1
+    if multiple then
+        blueprint_undo_cache[player.index] = {tick = game.tick, count = count}
+    end
+    return multiple
 end
 
-local event_filter = {{filter = "type", type = "pipe"}, {filter = "ghost_type", type = "pipe"}, {filter = "type", type = "storage-tank"}, {filter = "ghost_type", type = "storage-tank"}}
-script.on_event(defines.events.on_built_entity, on_built_entity)
+--- @param event EventData.on_built_entity|EventData.on_robot_built_entity|EventData.on_space_platform_built_entity|EventData.script_raised_built|EventData.script_raised_revive
+local function on_built_entity(event)
+    -- Based on code by protocol_1903 from Parallel Piping
+    -- licensed under the Sunset Protocol License, a copy can be found in credits/SUNSET_LICENSE
+    local this = event.entity
+    if not this or not this.valid then return end
+
+    -- Process only the temporary fct storage-tanks used for blueprint rotation.
+    -- Critically, do not inspect the player's undo stack for ordinary entities.
+    local is_ghost = this.type == "entity-ghost"
+    if this.type ~= "storage-tank" and
+       not (is_ghost and this.ghost_type == "storage-tank") then
+        return
+    end
+
+    local entity_name = is_ghost and this.ghost_name or this.name
+    local tank_data = stateutil.get_tank_data(entity_name)
+    if not tank_data or not tank_data.tankname then return end
+
+    local shape = pipeinfo.tanks[tank_data.tankname]
+    if not shape then return end
+    local junction = shape.juncname[this.direction]
+    if not junction then return end
+    local new_name = flowutil.construct_pipename(tank_data.basename, junction)
+
+    local player = event.player_index and game.get_player(event.player_index)
+    local stack = player and player.undo_redo_stack
+    local blueprint = has_multi_action_undo(player)
+
+    local replacement = this.surface.create_entity{
+        name = is_ghost and "entity-ghost" or new_name,
+        ghost_name = is_ghost and new_name or nil,
+        position = this.position,
+        quality = this.quality,
+        force = this.force,
+        player = event.player_index,
+        undo_index = player and 1 or nil,
+        create_build_effect_smoke = false,
+        raise_built = true
+    }
+
+    -- Never destroy the source if replacement was rejected by the engine.
+    if not replacement then return end
+    this.destroy()
+
+    if stack and not blueprint and stack.get_undo_item_count() > 0 then
+        stack.remove_undo_action(1, 1)
+    end
+end
+
+-- Filter at the engine level, including player-built entities. The original
+-- player on_built_entity subscription was completely unfiltered, causing a
+-- full undo-stack read for every ghost in large blueprints.
+local event_filter = {
+    {filter = "type", type = "storage-tank"},
+    {filter = "ghost_type", type = "storage-tank"}
+}
+script.on_event(defines.events.on_built_entity, on_built_entity, event_filter)
 script.on_event(defines.events.on_robot_built_entity, on_built_entity, event_filter)
 script.on_event(defines.events.on_space_platform_built_entity, on_built_entity, event_filter)
 script.on_event(defines.events.script_raised_built, on_built_entity, event_filter)
