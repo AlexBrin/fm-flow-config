@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.5
-Date: ????
+Date: 2026-11-15
   Changes:
     - Improve performance when pasting blueprints
   Bugfixes:
