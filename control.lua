@@ -271,13 +271,19 @@ local function update_denylist()
 	end
 end
 
+local function create_player_cache()
+	storage.player_built_cache = {}
+end
+
 local function on_init()
+	create_player_cache()
 	create_pipe_map()
 	update_denylist()
 	gui.create_all()
 end
 
 local function on_configuration_changed(cfg_changed_data)
+	create_player_cache()
 	create_pipe_map()
 	update_denylist()
 	gui.create_all()
@@ -497,23 +503,41 @@ script.on_event(defines.events.on_player_setup_blueprint, on_player_setup_bluepr
 
 ---------------------------------------------------------------------------------------------------
 
+local function should_handle_built_entity_undo_stack(event)
+	local player = game.get_player(event.player_index)
+	if player then
+		local cached = storage.player_built_cache[event.player_index]
+		if cached and cached.tick == event.tick then
+			return cached.value
+		end
+		
+		local stack = player.undo_redo_stack
+		local blueprint = stack.get_undo_item_count() > 0 and #stack.get_undo_item(1) ~= 1
+		if not blueprint then
+			storage.player_built_cache[event.player_index] = {tick=event.tick, value=true}
+			return true
+		end
+	end
+	storage.player_built_cache[event.player_index] = {tick=event.tick, value=false}
+	return false
+end
+
 --- @param event EventData.on_built_entity|EventData.on_robot_built_entity|EventData.on_space_platform_built_entity|EventData.script_raised_built|EventData.script_raised_revive|EventData.on_cancelled_deconstruction
 local function on_built_entity(event)
 	-- Based on code by protocol_1903 from Parallel Piping
 	-- licensed under the Sunset Protocol License, a copy can be found in credits/SUNSET_LICENSE
-	local player = event.player_index and game.get_player(event.player_index)
 	local this = event.entity
-	local stack = player and player.undo_redo_stack
-	local blueprint = stack and stack.get_undo_item_count() > 0 and #stack.get_undo_item(1) ~= 1
-
-	if this.type == "entity-ghost" and this.ghost_type == "storage-tank" or this.type == "storage-tank" then
+	
+	if (this.type == "entity-ghost" and this.ghost_type == "storage-tank") or this.type == "storage-tank" then
 		---@diagnostic disable-next-line: undefined-field
 		local tankdata = stateutil.get_tank_data(this.name)
 		if tankdata then
-			local tankdata = pipeinfo.tanks[tankdata.tankname]
-			if not tankdata then return end
-			local juncname = tankdata.juncname[this.direction]
+			local tankinfo = pipeinfo.tanks[tankdata.tankname]
+			if not tankinfo then return end
+			local juncname = tankinfo.juncname[this.direction]
 			local new_name = flowutil.construct_pipename(tankdata.basename, juncname)
+
+			local player = event.player_index and game.get_player(event.player_index)
 			this.surface.create_entity{
 				name = this.name == "entity-ghost" and "entity-ghost" or new_name,
 				ghost_name = this.name == "entity-ghost" and new_name or nil,
@@ -526,15 +550,17 @@ local function on_built_entity(event)
 				raise_built = true
 			}
 			this.destroy()
-			if stack and not blueprint then
-				stack.remove_undo_action(1, 1)
+
+			if should_handle_built_entity_undo_stack(event) then
+				assert(player)
+				player.undo_redo_stack.remove_undo_action(1, 1)
 			end
 		end
 	end
 end
 
-local event_filter = {{filter = "type", type = "pipe"}, {filter = "ghost_type", type = "pipe"}, {filter = "type", type = "storage-tank"}, {filter = "ghost_type", type = "storage-tank"}}
-script.on_event(defines.events.on_built_entity, on_built_entity)
+local event_filter = {{filter="type", type="storage-tank"}, {filter="ghost_type", type="storage-tank"}}
+script.on_event(defines.events.on_built_entity, on_built_entity, event_filter)
 script.on_event(defines.events.on_robot_built_entity, on_built_entity, event_filter)
 script.on_event(defines.events.on_space_platform_built_entity, on_built_entity, event_filter)
 script.on_event(defines.events.script_raised_built, on_built_entity, event_filter)
