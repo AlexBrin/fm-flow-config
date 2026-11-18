@@ -100,7 +100,9 @@ function gui.update_direction_button(states, button, dir)
 end
 
 function gui.update_pipe(player, pipe)
-	local gui_instance = player.gui.relative.flow_config.frame_content.flow_content
+	local gui_root = player.gui.relative.flow_config
+	gui_root.visible = true
+	local gui_instance = gui_root.frame_content.flow_content
 
 	local states = stateutil.get_empty_states()
 	if not stateutil.is_denied(pipe) then
@@ -120,8 +122,15 @@ function gui.update_pipe(player, pipe)
 	gui_instance.table_direction.sprite_pipe.sprite = icon
 end
 
+function gui.hide(player)
+	local gui_root = player.gui.relative.flow_config
+	gui_root.visible = false
+end
+
 function gui.update_pipe_to_ground(player, pipe)
-	local gui_instance = player.gui.relative.flow_config.frame_content.flow_content
+	local gui_root = player.gui.relative.flow_config
+	gui_root.visible = true
+	local gui_instance = gui_root.frame_content.flow_content
 
 	local states = stateutil.get_empty_states()
 	if not stateutil.is_denied(pipe) then
@@ -148,6 +157,8 @@ function gui.update_all()
 				gui.update_pipe(player, player.opened)
 			elseif stateutil.is_pipe_to_ground(player.opened) then
 				gui.update_pipe_to_ground(player, player.opened)
+			elseif stateutil.is_tank(player.opened) then
+				gui.hide(player)
 			end
 		end
 	end
@@ -297,6 +308,8 @@ local function on_gui_opened(event)
 		gui.update_pipe(player, event.entity)
 	elseif stateutil.is_pipe_to_ground(event.entity) then
 		gui.update_pipe_to_ground(player, event.entity)
+	elseif stateutil.is_tank(event.entity) then
+		gui.hide(player)
 	end
 end
 
