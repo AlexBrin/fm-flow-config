@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.7
 Date: ????
-  Changes:
+  Bugfixes:
+    - Add support for pipe picture variants from 2.1.25 (only for within blueprints, so it just picks the first picture)
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.6
 Date: 2026-11-17

@@ -82,7 +82,13 @@ for _,entity in pairs(data.raw.pipe) do
 				tank.fluid_box.pipe_connections[#tank.fluid_box.pipe_connections+1] = entity.fluid_box.pipe_connections[index]
 			end
 			for direction,index in pairs(metadata.pictures) do
-				tank.pictures.picture[direction] = entity.pictures[index]
+				if entity.pictures and entity.pictures[index] then
+					if entity.pictures[index][1] then
+						tank.pictures.picture[direction] = entity.pictures[index][1]
+					else
+						tank.pictures.picture[direction] = entity.pictures[index]
+					end
+				end
 			end
 			table.insert(tank_entities, tank)
 		end
